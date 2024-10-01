@@ -47,7 +47,7 @@ func handleEvent() {
 				// because it would need to be reconfigured as a non-connectable
 				// advertisement. That's left as a future addition, if
 				// necessary.
-				C.sd_ble_gap_adv_start(defaultAdvertisement.handle, C.BLE_CONN_CFG_TAG_DEFAULT)
+				C.sd_ble_gap_adv_start(defaultAdvertisement.handle, connCfgTag)
 			}
 			device := Device{
 				connectionHandle: gapEvent.conn_handle,

@@ -12,6 +12,7 @@ import (
 
 /*
 #include "ble_gap.h"
+#include "ble_gattc.h"
 */
 import "C"
 
@@ -162,7 +163,7 @@ func (a *Adapter) Connect(address Address, params ConnectionParams) (Device, err
 	connectionAttempt.state.Set(1)
 
 	// Start the connection attempt. We'll get a signal in the event handler.
-	errCode := C.sd_ble_gap_connect(&addr, &scanParams, &connectionParams, C.BLE_CONN_CFG_TAG_DEFAULT)
+	errCode := C.sd_ble_gap_connect(&addr, &scanParams, &connectionParams, connCfgTag)
 	if errCode != 0 {
 		connectionAttempt.state.Set(0)
 		return Device{}, Error(errCode)
@@ -175,6 +176,12 @@ func (a *Adapter) Connect(address Address, params ConnectionParams) (Device, err
 			// Successfully connected.
 			connectionAttempt.state.Set(0)
 			connectionHandle := connectionAttempt.connectionHandle
+
+			errCode = C.sd_ble_gattc_exchange_mtu_request(connectionHandle, C.uint16_t(a.cfg.Gatt.AttMtu))
+			if debug {
+				println("mtu requested, self:", a.cfg.Gatt.AttMtu, " err:", Error(errCode).Error())
+			}
+
 			return Device{
 				connectionHandle: connectionHandle,
 			}, nil

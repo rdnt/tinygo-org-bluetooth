@@ -33,7 +33,7 @@ var currentConnection = volatileHandle{handle: volatile.Register16{C.BLE_CONN_HA
 // Globally allocated buffer for incoming SoftDevice events.
 var eventBuf struct {
 	C.ble_evt_t
-	buf [23]byte
+	buf [247]byte
 }
 
 func init() {
@@ -49,6 +49,8 @@ type Adapter struct {
 	charWriteHandlers []charWriteHandler
 
 	connectHandler func(device Device, connected bool)
+
+	cfg Config
 }
 
 // DefaultAdapter is the default adapter on the current system. On Nordic chips,
@@ -61,6 +63,39 @@ var DefaultAdapter = &Adapter{isDefault: true,
 	}}
 
 var eventBufLen C.uint16_t
+
+type Config struct {
+	Gapp  GapConfig
+	Gatt  GattConfig
+	L2cap L2capConfig
+}
+
+type GapConfig struct {
+	ConnCount   uint8
+	EventLength uint16
+}
+
+type GattConfig struct {
+	AttMtu uint16
+}
+
+type L2capConfig struct {
+	RxMps       uint16
+	TxMps       uint16
+	RxQueueSize uint8
+	TxQueueSize uint8
+	ChCount     uint8
+}
+
+func (a *Adapter) Configure(cfg Config) error {
+	if cfg.Gatt.AttMtu < 23 || cfg.Gatt.AttMtu > 247 {
+		cfg.Gatt.AttMtu = 23
+	}
+
+	a.cfg = cfg
+
+	return nil
+}
 
 // Enable configures the BLE stack. It must be called before any
 // Bluetooth-related calls (unless otherwise indicated).
@@ -75,6 +110,10 @@ func (a *Adapter) Enable() error {
 			eventBufLen = C.uint16_t(unsafe.Sizeof(eventBuf))
 			errCode := C.sd_ble_evt_get((*C.uint8_t)(unsafe.Pointer(&eventBuf)), &eventBufLen)
 			if errCode != 0 {
+				// TODO: @rdnt remove
+				//if debug {
+				//	println("sd_ble_evt_get failed, err:", Error(errCode).Error())
+				//}
 				// Possible error conditions:
 				//  * NRF_ERROR_NOT_FOUND: no events left, break
 				//  * NRF_ERROR_DATA_SIZE: retry with a bigger data buffer
