@@ -48,6 +48,7 @@ func handleEvent() {
 				}
 				connectionAttempt.connectionHandle = gapEvent.conn_handle
 				connectionAttempt.state.Set(2) // connection was successful
+				mtuExchangeAttempt.state.Set(0)
 				DefaultAdapter.connectHandler(device, true)
 			}
 		case C.BLE_GAP_EVT_DISCONNECTED:
@@ -270,12 +271,36 @@ func handleEvent() {
 					}
 				}
 			}
-
 		case C.BLE_GATTC_EVT_EXCHANGE_MTU_RSP:
+			rsp := gattcEvent.params.unionfield_exchange_mtu_rsp()
+			if debug {
+				println("mtu exchanged, effective mtu:", rsp.server_rx_mtu)
+			}
+
+			mtuExchangeAttempt.effectiveMtu = uint16(rsp.server_rx_mtu)
+			mtuExchangeAttempt.state.Set(2) // mtu exchange was successful
+
 			if debug {
 				rsp := gattcEvent.params.unionfield_exchange_mtu_rsp()
 				println("mtu exchanged, effective mtu:", rsp.server_rx_mtu)
 			}
+		case C.BLE_GATTC_EVT_TIMEOUT:
+			timeoutEvt := gattcEvent.params.unionfield_timeout()
+			switch timeoutEvt.src {
+			case C.BLE_GATT_TIMEOUT_SRC_PROTOCOL:
+				// Failed to connect to a peripheral.
+				if debug {
+					println("gattc timeout: src protocol")
+				}
+				mtuExchangeAttempt.state.Set(3) // mtu exchange timed out
+			default:
+				// For example a scan timeout.
+				if debug {
+					println("gattc timeout: other")
+				}
+			}
+		case C.BLE_GATTC_EVT_WRITE_CMD_TX_COMPLETE:
+			// no op
 		default:
 			if debug {
 				println("unknown GATTC event:", id, id-C.BLE_GATTC_EVT_BASE)
