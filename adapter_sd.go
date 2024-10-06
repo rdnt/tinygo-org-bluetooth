@@ -33,7 +33,7 @@ var currentConnection = volatileHandle{handle: volatile.Register16{C.BLE_CONN_HA
 // Globally allocated buffer for incoming SoftDevice events.
 var eventBuf struct {
 	C.ble_evt_t
-	buf [247]byte
+	buf [244]byte
 }
 
 func init() {
@@ -64,34 +64,49 @@ var DefaultAdapter = &Adapter{isDefault: true,
 
 var eventBufLen C.uint16_t
 
+// Config represents the settings that will be configured to the connection
+// '1' of the SoftDevice.
 type Config struct {
-	Gapp  GapConfig
+	Gap   GapConfig
 	Gatt  GattConfig
 	L2cap L2capConfig
 }
 
 type GapConfig struct {
-	ConnCount   uint8
+	// EventLength is the time set aside for this connection on every
+	// connection interval in 1.25 ms units. The minimum value is 2.
 	EventLength uint16
 }
 
 type GattConfig struct {
+	// AttMtu is the maximum size of ATT packet the SoftDevice can send or
+	// receive. The default and minimum value is 23. The maximum value is 247.
+	// Using ATT_MTU sizes that are multiples of 23 is ideal.
 	AttMtu uint16
 }
 
+// L2capConfig is the L2CAP connection configuration. Leaving [ChCount] as 0
+// lets the L2CAP config be ignored.
 type L2capConfig struct {
-	RxMps       uint16
-	TxMps       uint16
+	// The maximum L2CAP PDU receive payload size.
+	// Valid range: 27 - 257.
+	RxMps uint16
+	// The maximum L2CAP PDU transmit payload size.
+	// Valid range: 27 - 257.
+	TxMps uint16
+	// Receive queue size. Minimum: 1
 	RxQueueSize uint8
+	// Transmit queue size. Minimum: 1
 	TxQueueSize uint8
-	ChCount     uint8
+	// Number of L2CAP channels the application can create. If this parameter
+	// is set to zero, all other parameters in the struct are ignored.
+	// Valid range: 1 - 64.
+	ChCount uint8
 }
 
+// Configure sets the configuration for this adapter.
+// The configuration will be applied when the adapter is enabled.
 func (a *Adapter) Configure(cfg Config) error {
-	if cfg.Gatt.AttMtu < 23 || cfg.Gatt.AttMtu > 247 {
-		cfg.Gatt.AttMtu = 23
-	}
-
 	a.cfg = cfg
 
 	return nil
