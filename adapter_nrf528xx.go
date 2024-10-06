@@ -72,18 +72,6 @@ func (a *Adapter) enable() error {
 		return Error(errCode)
 	}
 
-	l2capCfg := connCfg.params.unionfield_l2cap_conn_cfg()
-	l2capCfg.rx_mps = a.cfg.L2cap.RxMps
-	l2capCfg.tx_mps = a.cfg.L2cap.TxMps
-	l2capCfg.rx_queue_size = a.cfg.L2cap.RxQueueSize
-	l2capCfg.tx_queue_size = a.cfg.L2cap.TxQueueSize
-	l2capCfg.ch_count = a.cfg.L2cap.ChCount
-
-	errCode = C.sd_ble_cfg_set(C.uint32_t(C.BLE_CONN_CFG_L2CAP), &bleCfg, appRAMBase)
-	if errCode != 0 {
-		return Error(errCode)
-	}
-
 	errCode = C.sd_ble_enable(&appRAMBase)
 	return makeError(errCode)
 }

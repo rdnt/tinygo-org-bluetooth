@@ -67,9 +67,8 @@ var eventBufLen C.uint16_t
 // Config represents the settings that will be configured to the connection
 // '1' of the SoftDevice.
 type Config struct {
-	Gap   GapConfig
-	Gatt  GattConfig
-	L2cap L2capConfig
+	Gap  GapConfig
+	Gatt GattConfig
 }
 
 type GapConfig struct {
@@ -85,28 +84,17 @@ type GattConfig struct {
 	AttMtu uint16
 }
 
-// L2capConfig is the L2CAP connection configuration. Leaving [ChCount] as 0
-// lets the L2CAP config be ignored.
-type L2capConfig struct {
-	// The maximum L2CAP PDU receive payload size.
-	// Valid range: 27 - 257.
-	RxMps uint16
-	// The maximum L2CAP PDU transmit payload size.
-	// Valid range: 27 - 257.
-	TxMps uint16
-	// Receive queue size. Minimum: 1
-	RxQueueSize uint8
-	// Transmit queue size. Minimum: 1
-	TxQueueSize uint8
-	// Number of L2CAP channels the application can create. If this parameter
-	// is set to zero, all other parameters in the struct are ignored.
-	// Valid range: 1 - 64.
-	ChCount uint8
-}
-
 // Configure sets the configuration for this adapter.
 // The configuration will be applied when the adapter is enabled.
 func (a *Adapter) Configure(cfg Config) error {
+	if cfg.Gap.EventLength < 2 {
+		return errors.New("invalid event length")
+	}
+
+	if cfg.Gatt.AttMtu < 23 || cfg.Gatt.AttMtu > 247 {
+		return errors.New("invalid ATT MTU")
+	}
+
 	a.cfg = cfg
 
 	return nil
