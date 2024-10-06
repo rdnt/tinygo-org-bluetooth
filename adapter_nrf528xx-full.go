@@ -17,12 +17,6 @@ import (
 	"unsafe"
 )
 
-// TODO: @rdnt cleanup
-//var (
-//	dataLenParams     = &C.ble_gap_data_length_params_t{}
-//	dataLenLimitation = &C.ble_gap_data_length_limitation_t{}
-//)
-
 func handleEvent() {
 	id := eventBuf.header.evt_id
 	switch {

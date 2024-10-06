@@ -125,10 +125,6 @@ func (a *Adapter) Enable() error {
 			eventBufLen = C.uint16_t(unsafe.Sizeof(eventBuf))
 			errCode := C.sd_ble_evt_get((*C.uint8_t)(unsafe.Pointer(&eventBuf)), &eventBufLen)
 			if errCode != 0 {
-				// TODO: @rdnt remove
-				//if debug {
-				//	println("sd_ble_evt_get failed, err:", Error(errCode).Error())
-				//}
 				// Possible error conditions:
 				//  * NRF_ERROR_NOT_FOUND: no events left, break
 				//  * NRF_ERROR_DATA_SIZE: retry with a bigger data buffer

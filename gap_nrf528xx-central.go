@@ -182,12 +182,6 @@ func (a *Adapter) Connect(address Address, params ConnectionParams) (Device, err
 			connectionAttempt.state.Set(0)
 			connectionHandle := connectionAttempt.connectionHandle
 
-			// TODO @rdnt: move into exchangeMTU function
-			//errCode = C.sd_ble_gattc_exchange_mtu_request(connectionHandle, C.uint16_t(a.cfg.Gatt.AttMtu))
-			//if debug {
-			//	println("mtu requested, self:", a.cfg.Gatt.AttMtu, " err:", Error(errCode).Error())
-			//}
-
 			return Device{
 				connectionHandle: connectionHandle,
 			}, nil
