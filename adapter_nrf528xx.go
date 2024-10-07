@@ -55,6 +55,10 @@ func (a *Adapter) enable() error {
 	connCfg := bleCfg.unionfield_conn_cfg()
 	connCfg.conn_cfg_tag = connCfgTag
 
+	if a.cfg.Gap.EventLength == 0 {
+		a.cfg.Gap.EventLength = 2
+	}
+
 	gapCfg := connCfg.params.unionfield_gap_conn_cfg()
 	gapCfg.conn_count = 1
 	gapCfg.event_length = a.cfg.Gap.EventLength
@@ -62,6 +66,10 @@ func (a *Adapter) enable() error {
 	errCode = C.sd_ble_cfg_set(C.uint32_t(C.BLE_CONN_CFG_GAP), &bleCfg, appRAMBase)
 	if errCode != 0 {
 		return Error(errCode)
+	}
+
+	if a.cfg.Gatt.AttMtu == 0 {
+		a.cfg.Gatt.AttMtu = 23
 	}
 
 	gattCfg := connCfg.params.unionfield_gatt_conn_cfg()

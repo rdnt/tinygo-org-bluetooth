@@ -87,11 +87,11 @@ type GattConfig struct {
 // Configure sets the configuration for this adapter.
 // The configuration will be applied when the adapter is enabled.
 func (a *Adapter) Configure(cfg Config) error {
-	if cfg.Gap.EventLength < 2 {
+	if cfg.Gap.EventLength != 0 && cfg.Gap.EventLength < 2 {
 		return errors.New("invalid event length")
 	}
 
-	if cfg.Gatt.AttMtu < 23 || cfg.Gatt.AttMtu > 247 {
+	if cfg.Gatt.AttMtu != 0 && (cfg.Gatt.AttMtu < 23 || cfg.Gatt.AttMtu > 247) {
 		return errors.New("invalid ATT MTU")
 	}
 
